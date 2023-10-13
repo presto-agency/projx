@@ -1,19 +1,15 @@
-import React, {useState} from 'react';
+import React, {useContext, useState} from 'react';
 import TextField from "@/ui/TextField/TextField";
 import axios from "axios";
 import Link from "next/link";
 import {Controller, SubmitHandler, useForm} from "react-hook-form";
 import {yupResolver} from "@hookform/resolvers/yup";
 import {validationSchemaLogin} from "@/utils/validation/validationSchemaLogin";
+import AuthContext from "@/context/AuthContext";
 
 type FormValues = {
   email: string
   password: string
-}
-
-type ErrorValues = {
-  email?: string
-  password?: string
 }
 
 const defaultValues = {
@@ -30,32 +26,7 @@ export default function Login() {
     resolver: yupResolver(validationSchemaLogin)
   })
 
-  const [serverErrors, setServerErrors] = useState<ErrorValues>({});
-
-  const onSubmit: SubmitHandler<FormValues> = async (data) => {
-    setServerErrors({});
-    try {
-      const config = {
-        headers : {
-          'Content-Type' : 'application/json'
-        }
-      }
-
-      const response = await axios.post('http://192.168.0.87:8000/auth/jwt/create/',
-        data ,
-        config);
-
-      localStorage.setItem('activationResponse', JSON.stringify(response.data));
-
-      console.log('response', response)
-
-    } catch (error) {
-      if (axios.isAxiosError(error)) {
-        const serverErrorsData = (error.response?.data || {}) as ErrorValues;
-        setServerErrors(serverErrorsData);
-      }
-    }
-  };
+  let {loginUser, serverErrors} = useContext(AuthContext)
 
 
   return (
@@ -64,7 +35,7 @@ export default function Login() {
         <h1>
           Login
         </h1>
-        <form onSubmit={handleSubmit(onSubmit)} className='d-flex flex-column' action="#">
+        <form onSubmit={handleSubmit(loginUser)} className='d-flex flex-column' action="#">
           <Controller
             control={control}
             name='email'
